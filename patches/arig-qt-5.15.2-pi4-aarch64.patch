@@ -1,0 +1,151 @@
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qmake.conf ./qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qmake.conf
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qmake.conf	1970-01-01 01:00:00.000000000 +0100
++++ ./qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qmake.conf	2022-01-13 22:34:37.578178000 +0100
+@@ -0,0 +1,42 @@
++# qmake configuration for the Raspberry Pi 4 (64-bit) using the Mesa V3D
++# graphics stack. (not the Broadcom stack)
++#
++# This supports accelerated OpenGL both for X11 and DRM/KMS.  Perhaps
++# Wayland too.
++#
++# Tested with a sysroot created from Raspbian Bullseye and a gcc 7.4
++# toolchain from Linaro.
++#
++# Example configure command line, assuming installation to
++# /usr/local/qt5pi on device and ~/rpi/qt5 on the host:
++#
++# ./configure -release -opengl es2 -device linux-rasp-pi4-64-v3d-g++ -device-option CROSS_COMPILE=~/rpi/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu- \
++#   -sysroot ~/rpi/sysroot -opensource -confirm-license -make libs -prefix /usr/local/qt5pi -extprefix ~/rpi/qt5 -v
++#
++# Check the configure output carefully. EGLFS, EGLFS GBM, and EGL on X11
++# should all be 'yes'. Otherwise something is wrong.
++#
++# If getting linker errors like "undefined reference to `_dl_stack_flags'" check the
++# symlinks in the sysroot, they were probably not adjusted
++# correctly. F.ex. sysroot/usr/lib/aarch64-linux-gnu/libpthread.so must point to
++# sysroot/lib/aarch-linux-gnu/libpthread.so.0. If it is a broken link instead, bad
++# things will happen.
++
++include(../common/linux_device_pre.conf)
++
++QMAKE_LIBS_EGL         += -lEGL
++QMAKE_LIBS_OPENGL_ES2  += -lGLESv2 -lEGL
++
++#QMAKE_CFLAGS            = -march=armv8-a -mtune=cortex-a72 -mfpu=crypto-neon-fp-armv8-a
++QMAKE_CFLAGS            = -march=armv8-a -mtune=cortex-a72
++QMAKE_CXXFLAGS          = $$QMAKE_CFLAGS
++
++#DISTRO_OPTS            += hard-float
++DISTRO_OPTS            += aarch64
++DISTRO_OPTS            += deb-multi-arch
++
++EGLFS_DEVICE_INTEGRATION = eglfs_kms
++
++include(../common/linux_arm_device_post.conf)
++
++load(qt_config)
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qplatformdefs.h ./qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qplatformdefs.h
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qplatformdefs.h	1970-01-01 01:00:00.000000000 +0100
++++ ./qtbase/mkspecs/devices/linux-rasp-pi4-64-v3d-g++/qplatformdefs.h	2020-10-27 09:02:11.000000000 +0100
+@@ -0,0 +1,40 @@
++/****************************************************************************
++**
++** Copyright (C) 2017 The Qt Company Ltd.
++** Contact: https://www.qt.io/licensing/
++**
++** This file is part of the qmake spec of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
++**
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++#include "../../linux-g++/qplatformdefs.h"
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/global/qendian.h ./qtbase/src/corelib/global/qendian.h
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/global/qendian.h	2020-10-27 09:02:11.000000000 +0100
++++ ./qtbase/src/corelib/global/qendian.h	2022-01-13 22:17:31.389423000 +0100
+@@ -44,6 +44,8 @@
+ #include <QtCore/qfloat16.h>
+ #include <QtCore/qglobal.h>
+ 
++#include <limits>
++
+ // include stdlib.h and hope that it defines __GLIBC__ for glibc-based systems
+ #include <stdlib.h>
+ #include <string.h>
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/global/qfloat16.h ./qtbase/src/corelib/global/qfloat16.h
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/global/qfloat16.h	2020-10-27 09:02:11.000000000 +0100
++++ ./qtbase/src/corelib/global/qfloat16.h	2022-01-13 22:18:13.751269000 +0100
+@@ -43,6 +43,7 @@
+ 
+ #include <QtCore/qglobal.h>
+ #include <QtCore/qmetatype.h>
++#include <limits>
+ #include <string.h>
+ 
+ #if defined(QT_COMPILER_SUPPORTS_F16C) && defined(__AVX2__) && !defined(__F16C__)
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/text/qbytearraymatcher.h ./qtbase/src/corelib/text/qbytearraymatcher.h
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/text/qbytearraymatcher.h	2020-10-27 09:02:11.000000000 +0100
++++ ./qtbase/src/corelib/text/qbytearraymatcher.h	2022-01-13 22:24:54.011031000 +0100
+@@ -41,6 +41,7 @@
+ #define QBYTEARRAYMATCHER_H
+ 
+ #include <QtCore/qbytearray.h>
++#include <limits>
+ 
+ QT_BEGIN_NAMESPACE
+ 
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/tools/qoffsetstringarray_p.h ./qtbase/src/corelib/tools/qoffsetstringarray_p.h
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/src/corelib/tools/qoffsetstringarray_p.h	2020-10-27 09:02:11.000000000 +0100
++++ ./qtbase/src/corelib/tools/qoffsetstringarray_p.h	2022-01-13 22:56:44.040272000 +0100
+@@ -52,7 +52,7 @@
+ //
+ 
+ #include "private/qglobal_p.h"
+-
++#include <limits>
+ #include <tuple>
+ #include <array>
+ 
+diff -Naru ../qt-everywhere-src-5.15.2.orig/qtbase/src/gui/configure.json ./qtbase/src/gui/configure.json
+--- ../qt-everywhere-src-5.15.2.orig/qtbase/src/gui/configure.json	2020-10-27 09:02:11.000000000 +0100
++++ ./qtbase/src/gui/configure.json	2022-01-15 12:30:22.104137000 +0100
+@@ -862,7 +862,10 @@
+             "type": "compile",
+             "test": {
+                 "include": [ "EGL/egl.h", "bcm_host.h" ],
+-                "main": "vc_dispmanx_display_open(0);"
++                "main": [
++                    "vc_dispmanx_display_open(0);",
++                    "EGL_DISPMANX_WINDOW_T *eglWindow = new EGL_DISPMANX_WINDOW_T;"
++                ]
+             },
+             "use": "egl bcm_host"
+         },

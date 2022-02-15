@@ -2,7 +2,7 @@
 
 BASE_DIR=$(pwd)
 
-export FZF_DEFAULT_OPTS="--height 40% --border"
+export FZF_DEFAULT_OPTS="--height 40% --reverse --border"
 
 ./downloads.sh
 

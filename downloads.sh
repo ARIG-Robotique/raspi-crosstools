@@ -43,7 +43,11 @@ function download_sysroot() {
     local sysroot_dir=$1
     local web_url=$2
     if [ ! -d ${BUILD_TOOLS_DIR}/${sysroot_dir} ]; then
-        xdg-open ${web_url}
+        if [ "$(uname)" == "Darwin" ]; then
+            open ${web_url} > /dev/null
+        else 
+            xdg-open ${web_url} > /dev/null
+        fi
         DOWNLOAD_URL=$(zenity --entry --title="ARIG - Sysroot URL" --text="Saisissez l'url de download :")
         if [ "${?}" -ne 0 ] ; then
             echo "Opération annulé"

@@ -5,8 +5,11 @@ BASE_DIR=$(pwd)
 export FZF_DEFAULT_OPTS="--height 40% --reverse --border"
 
 ROBOT=$(fzf < <(
-        echo "Nerell"
-        echo "Odin"
+        echo "nerell"
+        echo "odin"
+        echo "pami-triangle"
+        echo "pami-carre"
+        echo "pami-rond"
     )
 )
 

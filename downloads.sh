@@ -62,12 +62,21 @@ function download_sysroot() {
     fi  
 }
 
-echo "Récupération des build-tools"
-GCC_AARCH_64_FILENAME=gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu
-GCC_AARCH_64_EXTENSION=tar.xz
-GCC_AARCH_64_URL=https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/${GCC_AARCH_64_FILENAME}.${GCC_AARCH_64_EXTENSION}
+alias python=python3
 
-download_and_extract ${BUILD_TOOLS_DIR} ${GCC_AARCH_64_URL} ${GCC_AARCH_64_FILENAME} ${GCC_AARCH_64_EXTENSION}
+echo "Récupération des build-tools Linux"
+GCC_LINUX_AARCH_64_FILENAME=gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu
+GCC_LINUX_AARCH_64_EXTENSION=tar.xz
+GCC_LINUX_AARCH_64_URL=https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/${GCC_LINUX_AARCH_64_FILENAME}.${GCC_LINUX_AARCH_64_EXTENSION}
+download_and_extract ${BUILD_TOOLS_DIR} ${GCC_LINUX_AARCH_64_URL} ${GCC_LINUX_AARCH_64_FILENAME} ${GCC_LINUX_AARCH_64_EXTENSION}
+
+echo "Récupération des build-tools MacOS (Apple Silicon)"
+GCC_DARWIN_AARCH_64_FILENAME=arm-gnu-toolchain-14.2.rel1-darwin-arm64-aarch64-none-elf
+GCC_DARWIN_AARCH_64_EXTENSION=tar.xz
+GCC_DARWIN_AARCH_64_URL=https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/${GCC_DARWIN_AARCH_64_FILENAME}.${GCC_DARWIN_AARCH_64_EXTENSION}
+download_and_extract ${BUILD_TOOLS_DIR} ${GCC_DARWIN_AARCH_64_URL} ${GCC_DARWIN_AARCH_64_FILENAME} ${GCC_DARWIN_AARCH_64_EXTENSION}
+
+echo "Récupération script de restructuration des liens symboliques"
 download ${BUILD_TOOLS_DIR} https://raw.githubusercontent.com/riscv/riscv-poky/master/scripts/sysroot-relativelinks.py sysroot-relativelinks.py
 chmod +x ${BUILD_TOOLS_DIR}/sysroot-relativelinks.py
 

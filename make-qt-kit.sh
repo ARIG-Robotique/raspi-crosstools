@@ -37,13 +37,19 @@ SYSROOT=$(fzf < <(
 )
 SYSROOT="${SYSROOT}-${ARCH}"
 
+BUILD_PLATFORM="Native"
+if [ -z "${BUILD_IN_DOCKER}" ]; then
+    BUILD_PLATFORM="Docker"
+fi
 
 DIR_NAME=build-qt-${QT_VERSION}-raspi${RASPI}-${ARCH}-${SYSROOT}
 echo ""
-echo "Raspberry PI : ${RASPI} - ${ARCH}"
-echo "Sysroot      : ${SYSROOT}"
-echo "QT Version   : ${QT_VERSION}"
-echo "Build dir    : ${DIR_NAME}"
+echo "Build OS       : $(uname -s)"
+echo "Build platform : ${BUILD_PLATFORM}"
+echo "Raspberry PI   : ${RASPI} - ${ARCH}"
+echo "Sysroot        : ${SYSROOT}"
+echo "QT Version     : ${QT_VERSION}"
+echo "Build dir      : ${DIR_NAME}"
 echo ""
 echo "Continue ? (y/n)"
 read CONTINUE
@@ -72,6 +78,12 @@ if [ "${ARCH}" == "aarch64" ]; then
 fi
 
 GCC_CROSS_COMPILE=${BASE_DIR}/build-tools/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+if [ "$(uname -s)" == "Darwin" ]; then
+    GCC_CROSS_COMPILE=${BASE_DIR}/build-tools/arm-gnu-toolchain-14.2.rel1-darwin-arm64-aarch64-none-elf/bin/aarch64-none-elf-
+fi
+if [ "${BUILD_PLATFORM}" == "Docker" ]; then
+    GCC_CROSS_COMPILE=/usr/bin/aarch64-linux-gnu-
+fi
 
 cd ${BASE_DIR}/${DIR_NAME}/build
 ../qt-everywhere-src-${QT_VERSION}/configure -release -opengl es2 -eglfs -device ${DEVICE} -device-option CROSS_COMPILE=${GCC_CROSS_COMPILE} -sysroot ${BASE_DIR}/build-tools/${SYSROOT} -prefix /home/pi/qt${QT_VERSION} -extprefix ${BASE_DIR}/${DIR_NAME}/qt${QT_VERSION}-pi -hostprefix ${BASE_DIR}/${DIR_NAME}/qt${QT_VERSION}-host -opensource -confirm-license -skip qtscript -skip qtwayland -skip qtwebengine -nomake tests -make libs -pkg-config -no-use-gold-linker -v -recheck
